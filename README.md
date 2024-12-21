@@ -15,7 +15,7 @@
 - junit-jupiter-api - библиотека для unit-тестов
 
 ## Описание основных файлов
-- /config/ConfigMain.java - конфигурация для spring
+- config/ConfigMain.java - конфигурация для spring
 - homework/Result.java - класс объекта строки результата соревнований 
 - homework/ResultAnalyzer - класс для метода преобразования массива строк в объект Result
 - homework/ResultProcessor - класс для основных методов задания (загрузка из файла, фильтрация результатов и тд)
