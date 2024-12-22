@@ -1,10 +1,11 @@
 package org.example.basics.homework;
 
 import com.opencsv.CSVReader;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.opencsv.exceptions.CsvException;
+import org.example.basics.homework.exceptions.BadArgumentException;
 import org.springframework.stereotype.Component;
 
-import java.io.Reader;
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -20,13 +21,15 @@ public class ResultsProcessor {
         this.resultAnalyzer = resultAnalyzer;
     }
 
-    public void readAllLines(Path filePath) throws Exception {
-        try (Reader reader = Files.newBufferedReader(filePath)) {
-            try (CSVReader csvReader = new CSVReader(reader)) {
-                this.resultList = csvReader.readAll().
-                        stream().map(resultAnalyzer::parsingResult).
-                        collect(Collectors.toList());
-            }
+    public void readAllLines(Path filePath) throws IOException, CsvException {
+        try (CSVReader csvReader = new CSVReader(Files.newBufferedReader(filePath))) {
+            this.resultList = csvReader.readAll().
+                    stream().map(resultAnalyzer::parsingResult).
+                    collect(Collectors.toList());
+        }  catch (IOException e) {
+            throw new IOException("Не смог прочитать файл " + filePath + "\n" + e.getMessage());
+        } catch (CsvException e) {
+            throw new CsvException("Не смог разобрать данные из csv-файла " + filePath + "\n" + e.getMessage());
         }
     }
 
@@ -40,10 +43,23 @@ public class ResultsProcessor {
         this.resultList = resultList;
     }
 
-    public List<Result> getFastest(String gender, String distance, int limit) {
+    public List<Result> getFastest(String gender, String distance, int limit) throws BadArgumentException {
+        StringBuilder registerNullArgument = new StringBuilder();
+        if (gender == null || gender.isEmpty()) {
+            registerNullArgument.append("gender ");
+        }
+        if (distance == null || distance.isEmpty()) {
+            registerNullArgument.append("distance ");
+        }
+        if (limit <= 0) {
+            registerNullArgument.append("limit ");
+        }
+        if (!registerNullArgument.toString().isEmpty()) {
+            throw new BadArgumentException("Неверно заполнены аргументы для обращения: " + registerNullArgument);
+        }
         return this.resultList
                 .stream()
-                .filter(o -> o.gender().equals(gender) && o.distance().equals(distance))
+                .filter(o -> o.gender().equalsIgnoreCase(gender) && o.distance().equalsIgnoreCase(distance))
                 .sorted()
                 .limit(limit)
                 .toList();

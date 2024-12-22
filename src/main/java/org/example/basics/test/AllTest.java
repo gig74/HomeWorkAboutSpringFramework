@@ -3,6 +3,7 @@ package org.example.basics.test;
 import org.example.basics.homework.Result;
 import org.example.basics.homework.ResultAnalyzer;
 import org.example.basics.homework.ResultsProcessor;
+import org.example.basics.homework.exceptions.BadArgumentException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.core.io.ClassPathResource;
@@ -39,6 +40,9 @@ class AllTest {
         String[] stringsForParsing = new String[] {"Иванова Милана Данииловна","Ж","10 км","36:08"};
         Result result = new Result("Иванова Милана Данииловна","Ж","10 км","36:08");
         assertEquals(result, resultAnalyzer.parsingResult(stringsForParsing));
+
+        String[] badStringsForParsing = new String[] {"Иванова Милана Данииловна","Ж","10 км"};
+        assertThrows(RuntimeException.class, () -> resultAnalyzer.parsingResult(badStringsForParsing));
     }
     @Test
     void getResultListAndSetResultListTest() {
@@ -49,9 +53,10 @@ class AllTest {
     void readAllLinesTest() throws Exception {
         resultsProcessor.readAllLines(new ClassPathResource("runningresults.csv").getFile().toPath());
         assertEquals(60, resultsProcessor.getResultList().size());
+        assertThrows(IOException.class, () -> resultsProcessor.readAllLines(new ClassPathResource("сборка тестового csv.xlsx").getFile().toPath()));
     }
     @Test
-    void getFastestTest() {
+    void getFastestTest() throws BadArgumentException {
         resultsProcessor.setResultList(resultListTest);
         List<Result> resultListControl = new ArrayList<>();
         Result result_03 = new Result("Иванова Милана Данииловна","Ж","10 км","36:08");
@@ -60,6 +65,9 @@ class AllTest {
         resultListControl.add(result_01);
 
         assertEquals(resultListControl, resultsProcessor.getFastest("Ж","10 км", 2));
+        assertThrows(BadArgumentException.class, () -> resultsProcessor.getFastest("Ж","10 км", 0));
+        assertThrows(BadArgumentException.class, () -> resultsProcessor.getFastest(null,"10 км", 2));
+        assertThrows(BadArgumentException.class, () -> resultsProcessor.getFastest("Ж","", 2));
     }
 
 }
